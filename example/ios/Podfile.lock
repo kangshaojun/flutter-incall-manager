@@ -4,14 +4,14 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - Flutter (from `Pods/.symlinks/flutter/ios`)
-  - incall (from `Pods/.symlinks/plugins/incall/ios`)
+  - Flutter (from `Pods/.symlinks/flutter/ios-release`)
+  - incall (from `Pods/.symlinks/plugins/flutter-incall-manager/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
-    :path: Pods/.symlinks/flutter/ios
+    :path: Pods/.symlinks/flutter/ios-release
   incall:
-    :path: Pods/.symlinks/plugins/incall/ios
+    :path: Pods/.symlinks/plugins/flutter-incall-manager/ios
 
 SPEC CHECKSUMS:
   Flutter: 9d0fac939486c9aba2809b7982dfdbb47a7b0296
