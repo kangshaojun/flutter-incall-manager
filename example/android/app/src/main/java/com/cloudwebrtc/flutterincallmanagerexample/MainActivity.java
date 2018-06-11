@@ -1,4 +1,4 @@
-package com.cloudwebrtc.incallexample;
+package com.cloudwebrtc.flutterincallmanagerexample;
 
 import android.os.Bundle;
 

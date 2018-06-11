@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:incall/incall.dart';
-import 'package:incall/incall_manager.dart';
+import 'package:flutter_incall_manager/incall.dart';
+import 'package:flutter_incall_manager/flutter_incall_manager.dart';
 
 
 void main() => runApp(new MyApp());

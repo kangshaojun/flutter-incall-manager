@@ -1,5 +1,5 @@
-name: incall_example
-description: Demonstrates how to use the incall plugin.
+name: flutter_incall_manager_example
+description: Demonstrates how to use the flutter_incall_manager plugin.
 
 dependencies:
   flutter:
@@ -13,7 +13,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  incall:
+  flutter_incall_manager:
     path: ../
 
 # For information on the generic Dart part of this file, see the

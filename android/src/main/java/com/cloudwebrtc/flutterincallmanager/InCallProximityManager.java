@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.cloudwebrtc.incall;
+package com.cloudwebrtc.flutterincallmanager;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.Runnable;
 
-import com.cloudwebrtc.incall.AppRTC.AppRTCProximitySensor;
+import com.cloudwebrtc.flutterincallmanager.AppRTC.AppRTCProximitySensor;
 
 public class InCallProximityManager {
     private static final String TAG = "InCallProximityManager";
@@ -38,11 +38,11 @@ public class InCallProximityManager {
     private AppRTCProximitySensor proximitySensor = null;
 
     /** Construction */
-    static InCallProximityManager create(Context context, final IncallPlugin inCallManager) {
+    static InCallProximityManager create(Context context, final FlutterIncallManagerPlugin inCallManager) {
         return new InCallProximityManager(context, inCallManager);
     }
 
-    private InCallProximityManager(Context context, final IncallPlugin inCallManager) {
+    private InCallProximityManager(Context context, final FlutterIncallManagerPlugin inCallManager) {
         Log.d(TAG, "InCallProximityManager");
         checkProximitySupport(context);
         if (proximitySupported) {

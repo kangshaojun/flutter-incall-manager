@@ -1,4 +1,4 @@
-name: incall
+name: flutter_incall_manager
 description: A new Flutter plugin.
 version: 0.0.1
 author:
@@ -14,8 +14,8 @@ dependencies:
 # The following section is specific to Flutter.
 flutter:
   plugin:
-    androidPackage: com.cloudwebrtc.incall
-    pluginClass: IncallPlugin
+    androidPackage: com.cloudwebrtc.flutterincallmanager
+    pluginClass: FlutterIncallManagerPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

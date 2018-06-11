@@ -1,4 +1,4 @@
-package com.cloudwebrtc.incall.utils;
+package com.cloudwebrtc.flutterincallmanager.utils;
 
 public interface Callback {
 

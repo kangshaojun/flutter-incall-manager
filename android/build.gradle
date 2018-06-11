@@ -1,4 +1,4 @@
-group 'com.cloudwebrtc.incall'
+group 'com.cloudwebrtc.flutterincallmanager'
 version '1.0-SNAPSHOT'
 buildscript {
     repositories {
@@ -19,14 +19,13 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 android {
     compileSdkVersion 23
+
     defaultConfig {
         minSdkVersion 21
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
         disable 'InvalidPackage'
-    }
-    productFlavors {
     }
 }
 

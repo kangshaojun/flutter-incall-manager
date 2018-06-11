@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.cloudwebrtc.incall;
+package com.cloudwebrtc.flutterincallmanager;
 
 import android.content.Context;
 import android.os.PowerManager;

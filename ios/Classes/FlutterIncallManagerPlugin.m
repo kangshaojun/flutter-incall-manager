@@ -1,6 +1,6 @@
-#import "IncallPlugin.h"
+#import "FlutterIncallManagerPlugin.h"
 
-@implementation IncallPlugin{
+@implementation FlutterIncallManagerPlugin{
     
     UIDevice *_currentDevice;
     
@@ -49,96 +49,96 @@
 
 //
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  FlutterMethodChannel* channel = [FlutterMethodChannel
-            methodChannelWithName:@"cloudwebrtc.com/incall.manager"
-            binaryMessenger:[registrar messenger]];
-  IncallPlugin* instance = [[IncallPlugin alloc] init];
-  [registrar addMethodCallDelegate:instance channel:channel];
+    FlutterMethodChannel* channel = [FlutterMethodChannel
+                                     methodChannelWithName:@"cloudwebrtc.com/incall.manager"
+                                     binaryMessenger:[registrar messenger]];
+    FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] init];
+    [registrar addMethodCallDelegate:instance channel:channel];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-
-   NSDictionary* argsMap = call.arguments;
-
-  if ([@"start" isEqualToString:call.method]) {
-      NSString* media = argsMap[@"media"];
-      BOOL isAuto = [argsMap[@"auto"] boolValue];
-      NSString* ringback = argsMap[@"ringback"];
-      [self start:media auto:isAuto ringbackUriType:ringback];
-      //result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
-      result(nil);
-  }
-  else if([@"stop" isEqualToString:call.method]){
-      NSString* busytone = argsMap[@"busytone"];
-      [self stop:busytone];
-      result(nil);
-  }
-  else if([@"setKeepScreenOn" isEqualToString:call.method]){
-      BOOL enable = [argsMap[@"enable"] boolValue];
-      [self setKeepScreenOn:enable];
-      result(nil);
-  }
-  else if([@"setSpeakerphoneOn" isEqualToString:call.method]){
-      BOOL enable = [argsMap[@"enable"] boolValue];
-      [self setSpeakerphoneOn:enable];
-      result(nil);
-  }
-  else if([@"setForceSpeakerphoneOn" isEqualToString:call.method]){
-      BOOL flag = [argsMap[@"flag"] boolValue];
-      [self setForceSpeakerphoneOn:flag];
-      result(nil);
-  }
-  else if([@"setMicrophoneMute" isEqualToString:call.method]){
-      BOOL enable = [argsMap[@"flag"] boolValue];
-      [self setMicrophoneMute:enable];
-      result(nil);
-  }
-  else if([@"turnScreenOn" isEqualToString:call.method]){
-      [self turnScreenOn];
-      result(nil);
-  }
-  else if([@"turnScreenOff" isEqualToString:call.method]){
-      [self turnScreenOff];
-      result(nil);
-  }
-  else if([@"startRingtone" isEqualToString:call.method]){
-      NSString* ringtoneUriType = argsMap[@"ringtoneUriType"];
-      NSString* ios_category = argsMap[@"ios_category"];
-      [self startRingtone:ringtoneUriType ringtoneCategory:ios_category];
-      result(nil);
-  }
-  else if([@"stopRingtone" isEqualToString:call.method]){
-      [self stopRingtone];
-      result(nil);
-  }
-  else if([@"startRingback" isEqualToString:call.method]){
-      [self startRingback:@"_BUNDLE_"];
-      result(nil);
-  }
-  else if([@"stopRingback" isEqualToString:call.method]){
-      [self stopRingback];
-      result(nil);
-  }
-  else if([@"getAudioUriJS" isEqualToString:call.method]){
-      NSString* audioType = argsMap[@"audioType"];
-      NSString* fileType = argsMap[@"fileType"];
-      [self getAudioUriJS:audioType fileType:fileType flutterResult:result];
-  }
-  else if([@"checkRecordPermission" isEqualToString:call.method]){
-      [self checkRecordPermission:result];
-  }
-  else if([@"requestRecordPermission" isEqualToString:call.method]){
-      [self requestRecordPermission:result];
-  }
-  else if([@"checkCameraPermission" isEqualToString:call.method]){
-      [self checkCameraPermission:result];
-  }
-  else if([@"requestCameraPermission" isEqualToString:call.method]){
-      [self requestCameraPermission:result];
-  }
-  else {
-    result(FlutterMethodNotImplemented);
-  }
+    
+    NSDictionary* argsMap = call.arguments;
+    
+    if ([@"start" isEqualToString:call.method]) {
+        NSString* media = argsMap[@"media"];
+        BOOL isAuto = [argsMap[@"auto"] boolValue];
+        NSString* ringback = argsMap[@"ringback"];
+        [self start:media auto:isAuto ringbackUriType:ringback];
+        //result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+        result(nil);
+    }
+    else if([@"stop" isEqualToString:call.method]){
+        NSString* busytone = argsMap[@"busytone"];
+        [self stop:busytone];
+        result(nil);
+    }
+    else if([@"setKeepScreenOn" isEqualToString:call.method]){
+        BOOL enable = [argsMap[@"enable"] boolValue];
+        [self setKeepScreenOn:enable];
+        result(nil);
+    }
+    else if([@"setSpeakerphoneOn" isEqualToString:call.method]){
+        BOOL enable = [argsMap[@"enable"] boolValue];
+        [self setSpeakerphoneOn:enable];
+        result(nil);
+    }
+    else if([@"setForceSpeakerphoneOn" isEqualToString:call.method]){
+        BOOL flag = [argsMap[@"flag"] boolValue];
+        [self setForceSpeakerphoneOn:flag];
+        result(nil);
+    }
+    else if([@"setMicrophoneMute" isEqualToString:call.method]){
+        BOOL enable = [argsMap[@"flag"] boolValue];
+        [self setMicrophoneMute:enable];
+        result(nil);
+    }
+    else if([@"turnScreenOn" isEqualToString:call.method]){
+        [self turnScreenOn];
+        result(nil);
+    }
+    else if([@"turnScreenOff" isEqualToString:call.method]){
+        [self turnScreenOff];
+        result(nil);
+    }
+    else if([@"startRingtone" isEqualToString:call.method]){
+        NSString* ringtoneUriType = argsMap[@"ringtoneUriType"];
+        NSString* ios_category = argsMap[@"ios_category"];
+        [self startRingtone:ringtoneUriType ringtoneCategory:ios_category];
+        result(nil);
+    }
+    else if([@"stopRingtone" isEqualToString:call.method]){
+        [self stopRingtone];
+        result(nil);
+    }
+    else if([@"startRingback" isEqualToString:call.method]){
+        [self startRingback:@"_BUNDLE_"];
+        result(nil);
+    }
+    else if([@"stopRingback" isEqualToString:call.method]){
+        [self stopRingback];
+        result(nil);
+    }
+    else if([@"getAudioUriJS" isEqualToString:call.method]){
+        NSString* audioType = argsMap[@"audioType"];
+        NSString* fileType = argsMap[@"fileType"];
+        [self getAudioUriJS:audioType fileType:fileType flutterResult:result];
+    }
+    else if([@"checkRecordPermission" isEqualToString:call.method]){
+        [self checkRecordPermission:result];
+    }
+    else if([@"requestRecordPermission" isEqualToString:call.method]){
+        [self requestRecordPermission:result];
+    }
+    else if([@"checkCameraPermission" isEqualToString:call.method]){
+        [self checkCameraPermission:result];
+    }
+    else if([@"requestCameraPermission" isEqualToString:call.method]){
+        [self requestCameraPermission:result];
+    }
+    else {
+        result(FlutterMethodNotImplemented);
+    }
 }
 
 - (instancetype)init
@@ -201,8 +201,8 @@
 }
 
 - (void) start:(NSString *)mediaType
-                  auto:(BOOL)_auto
-                  ringbackUriType:(NSString *)ringbackUriType
+          auto:(BOOL)_auto
+ringbackUriType:(NSString *)ringbackUriType
 {
     if (_audioSessionInitialized) {
         return;
@@ -284,7 +284,7 @@
 }
 
 -setFlashOn:(BOOL)enable
-                  brightness:(nonnull NSNumber *)brightness
+ brightness:(nonnull NSNumber *)brightness
 {
     if ([AVCaptureDevice class]) {
         AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
@@ -382,7 +382,7 @@
 }
 
 - (void) startRingtone:(NSString *)ringtoneUriType
-                  ringtoneCategory:(NSString *)ringtoneCategory
+      ringtoneCategory:(NSString *)ringtoneCategory
 {
     // you may rejected by apple when publish app if you use system sound instead of bundled sound.
     NSLog(@"FlutterInCallManager.startRingtone(): type: %@", ringtoneUriType);
@@ -548,8 +548,8 @@
 }
 
 - (void) getAudioUriJS:(NSString *)audioType
-                  fileType:(NSString *)fileType
-                  flutterResult:(FlutterResult)flutterResult
+              fileType:(NSString *)fileType
+         flutterResult:(FlutterResult)flutterResult
 
 {
     NSURL *result = nil;
@@ -574,9 +574,9 @@
 - (void) getIsWiredHeadsetPluggedIn
 {
     BOOL wiredHeadsetPluggedIn = [self isWiredHeadsetPluggedIn];
-//    resolve(@[@{
-//                  @"isWiredHeadsetPluggedIn": wiredHeadsetPluggedIn ? @YES : @NO,
-//                  }]);
+    //    resolve(@[@{
+    //                  @"isWiredHeadsetPluggedIn": wiredHeadsetPluggedIn ? @YES : @NO,
+    //                  }]);
 }
 
 - (void)updateAudioRoute
@@ -810,7 +810,7 @@
                                           if (state != _proximityIsNear) {
                                               NSLog(@"FlutterInCallManager.UIDeviceProximityStateDidChangeNotification(): isNear: %@", state ? @"YES" : @"NO");
                                               _proximityIsNear = state;
-//                                              [self sendEventWithName:@"Proximity" body:@[@{@"isNear": state ? @YES : @NO}]];
+                                              //                                              [self sendEventWithName:@"Proximity" body:@[@{@"isNear": state ? @YES : @NO}]];
                                           }
                                       }];
     
@@ -936,31 +936,31 @@
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: NewDeviceAvailable");
                                                                 if ([self checkAudioRoute:@[AVAudioSessionPortHeadsetMic]
                                                                                 routeType:@"input"]) {
-//                                                                    [self sendEventWithName:@"WiredHeadset"
-//                                                                                       body:@[@{
-//                                                                                                  @"isPlugged": @YES,
-//                                                                                                  @"hasMic": @YES,
-//                                                                                                  @"deviceName": AVAudioSessionPortHeadsetMic,
-//                                                                                                  }]];
+                                                                    //                                                                    [self sendEventWithName:@"WiredHeadset"
+                                                                    //                                                                                       body:@[@{
+                                                                    //                                                                                                  @"isPlugged": @YES,
+                                                                    //                                                                                                  @"hasMic": @YES,
+                                                                    //                                                                                                  @"deviceName": AVAudioSessionPortHeadsetMic,
+                                                                    //                                                                                                  }]];
                                                                 } else if ([self checkAudioRoute:@[AVAudioSessionPortHeadphones]
                                                                                        routeType:@"output"]) {
-//                                                                    [self sendEventWithName:@"WiredHeadset"
-//                                                                                       body:@[@{
-//                                                                                                  @"isPlugged": @YES,
-//                                                                                                  @"hasMic": @NO,
-//                                                                                                  @"deviceName": AVAudioSessionPortHeadphones,
-//                                                                                                  }]];
+                                                                    //                                                                    [self sendEventWithName:@"WiredHeadset"
+                                                                    //                                                                                       body:@[@{
+                                                                    //                                                                                                  @"isPlugged": @YES,
+                                                                    //                                                                                                  @"hasMic": @NO,
+                                                                    //                                                                                                  @"deviceName": AVAudioSessionPortHeadphones,
+                                                                    //                                                                                                  }]];
                                                                 }
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: OldDeviceUnavailable");
                                                                 if (![self isWiredHeadsetPluggedIn]) {
-//                                                                    [self sendEventWithName:@"WiredHeadset"
-//                                                                                       body:@[@{
-//                                                                                                  @"isPlugged": @NO,
-//                                                                                                  @"hasMic": @NO,
-//                                                                                                  @"deviceName": @"",
-//                                                                                                  }]];
+                                                                    //                                                                    [self sendEventWithName:@"WiredHeadset"
+                                                                    //                                                                                       body:@[@{
+                                                                    //                                                                                                  @"isPlugged": @NO,
+                                                                    //                                                                                                  @"hasMic": @NO,
+                                                                    //                                                                                                  @"deviceName": @"",
+                                                                    //                                                                                                  }]];
                                                                 }
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonCategoryChange:
@@ -1329,3 +1329,4 @@
 }
 
 @end
+

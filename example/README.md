@@ -1,6 +1,6 @@
-# incall_example
+# flutter_incall_manager_example
 
-Demonstrates how to use the incall plugin.
+Demonstrates how to use the flutter_incall_manager plugin.
 
 ## Getting Started
 

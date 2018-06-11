@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package com.cloudwebrtc.incall.AppRTC;
+package com.cloudwebrtc.flutterincallmanager.AppRTC;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -28,7 +28,7 @@ import android.util.Log;
 import java.util.List;
 import java.util.Set;
 
-import com.cloudwebrtc.incall.IncallPlugin;
+import com.cloudwebrtc.flutterincallmanager.FlutterIncallManagerPlugin;
 
 /**
  * AppRTCProximitySensor manages functions related to Bluetoth devices in the
@@ -63,7 +63,7 @@ public class AppRTCBluetoothManager {
   }
 
   private final Context apprtcContext;
-  private final IncallPlugin apprtcAudioManager;
+  private final FlutterIncallManagerPlugin apprtcAudioManager;
   private final AudioManager audioManager;
   private final Handler handler;
 
@@ -190,12 +190,12 @@ public class AppRTCBluetoothManager {
   }
 
   /** Construction. */
-  public static AppRTCBluetoothManager create(Context context, IncallPlugin audioManager) {
+  public static AppRTCBluetoothManager create(Context context, FlutterIncallManagerPlugin audioManager) {
     Log.d(TAG, "create");
     return new AppRTCBluetoothManager(context, audioManager);
   }
 
-  protected AppRTCBluetoothManager(Context context, IncallPlugin audioManager) {
+  protected AppRTCBluetoothManager(Context context, FlutterIncallManagerPlugin audioManager) {
     Log.d(TAG, "ctor");
     apprtcContext = context;
     apprtcAudioManager = audioManager;

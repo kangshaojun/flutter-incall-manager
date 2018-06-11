@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package com.cloudwebrtc.incall.AppRTC;
+package com.cloudwebrtc.flutterincallmanager.AppRTC;
 
 import android.content.Context;
 import android.hardware.Sensor;
