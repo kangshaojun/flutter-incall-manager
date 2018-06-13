@@ -1,6 +1,13 @@
 #import "FlutterIncallManagerPlugin.h"
+#import "FlutterIncallEvent.h";
 
 @implementation FlutterIncallManagerPlugin{
+    
+    FlutterMethodChannel *_methodChannel;
+    id _registry;
+    id _messenger;
+    id _textures;
+    FlutterIncallEvent *incallEvent;
     
     UIDevice *_currentDevice;
     
@@ -44,7 +51,6 @@
     NSString *_recordPermission;
     NSString *_cameraPermission;
     NSString *_media;
-    
 }
 
 //
@@ -52,8 +58,83 @@
     FlutterMethodChannel* channel = [FlutterMethodChannel
                                      methodChannelWithName:@"cloudwebrtc.com/incall.manager"
                                      binaryMessenger:[registrar messenger]];
-    FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] init];
+    //FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] init];
+    
+    
+    UIViewController *viewController = (UIViewController *)registrar.messenger;
+    FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] initWithChannel:channel
+                                                                                     registrar:registrar
+                                                                                     messenger:[registrar messenger]
+                                                                                viewController:viewController
+                                                                                  withTextures:[registrar textures]];
+    
     [registrar addMethodCallDelegate:instance channel:channel];
+}
+
+
+
+- (instancetype)initWithChannel:(FlutterMethodChannel *)channel
+                      registrar:(NSObject<FlutterPluginRegistrar>*)registrar
+                      messenger:(NSObject<FlutterBinaryMessenger>*)messenger
+                 viewController:(UIViewController *)viewController
+                   withTextures:(NSObject<FlutterTextureRegistry> *)textures{
+    
+    //    self = [super init];
+    
+    _currentDevice = [UIDevice currentDevice];
+    _audioSession = [AVAudioSession sharedInstance];
+    _ringtone = nil;
+    _ringback = nil;
+    _busytone = nil;
+    
+    _defaultRingtoneUri = nil;
+    _defaultRingbackUri = nil;
+    _defaultBusytoneUri = nil;
+    _bundleRingtoneUri = nil;
+    _bundleRingbackUri = nil;
+    _bundleBusytoneUri = nil;
+    
+    _proximityIsNear = NO;
+    
+    _isProximityRegistered = NO;
+    _isAudioSessionInterruptionRegistered = NO;
+    _isAudioSessionRouteChangeRegistered = NO;
+    _isAudioSessionMediaServicesWereLostRegistered = NO;
+    _isAudioSessionMediaServicesWereResetRegistered = NO;
+    _isAudioSessionSilenceSecondaryAudioHintRegistered = NO;
+    
+    _proximityObserver = nil;
+    _audioSessionInterruptionObserver = nil;
+    _audioSessionRouteChangeObserver = nil;
+    _audioSessionMediaServicesWereLostObserver = nil;
+    _audioSessionMediaServicesWereResetObserver = nil;
+    _audioSessionSilenceSecondaryAudioHintObserver = nil;
+    
+    _incallAudioMode = AVAudioSessionModeVoiceChat;
+    _incallAudioCategory = AVAudioSessionCategoryPlayAndRecord;
+    _origAudioCategory = nil;
+    _origAudioMode = nil;
+    _audioSessionInitialized = NO;
+    _forceSpeakerOn = 0;
+    _recordPermission = nil;
+    _cameraPermission = nil;
+    _media = @"audio";
+    
+    NSLog(@"FlutterInCallManager.init(): initialized");
+    
+    if (self) {
+        _methodChannel = channel;
+        _registry = registrar;
+        _messenger = messenger;
+    }
+    
+    incallEvent = [[FlutterIncallEvent alloc] init];
+    incallEvent.eventChannel = [FlutterEventChannel
+                                eventChannelWithName:@"cloudwebrtc.com/incall.manager.event"
+                                binaryMessenger:_messenger];
+    [incallEvent.eventChannel setStreamHandler:incallEvent];
+    
+    return self;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -65,7 +146,16 @@
         BOOL isAuto = [argsMap[@"auto"] boolValue];
         NSString* ringback = argsMap[@"ringback"];
         [self start:media auto:isAuto ringbackUriType:ringback];
-        //result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+        
+        //event test code
+        //        FlutterEventSink eventSink = incallEvent.eventSink;
+        //        if(eventSink){
+        //            eventSink(@{
+        //                        @"event" : @"demoEvent",
+        //                        @"id" : @"aaaa",
+        //                        @"value": @"hello"
+        //                        });
+        //        }
         result(nil);
     }
     else if([@"stop" isEqualToString:call.method]){
@@ -141,52 +231,54 @@
     }
 }
 
-- (instancetype)init
-{
-    if (self = [super init]) {
-        _currentDevice = [UIDevice currentDevice];
-        _audioSession = [AVAudioSession sharedInstance];
-        _ringtone = nil;
-        _ringback = nil;
-        _busytone = nil;
-        
-        _defaultRingtoneUri = nil;
-        _defaultRingbackUri = nil;
-        _defaultBusytoneUri = nil;
-        _bundleRingtoneUri = nil;
-        _bundleRingbackUri = nil;
-        _bundleBusytoneUri = nil;
-        
-        _proximityIsNear = NO;
-        
-        _isProximityRegistered = NO;
-        _isAudioSessionInterruptionRegistered = NO;
-        _isAudioSessionRouteChangeRegistered = NO;
-        _isAudioSessionMediaServicesWereLostRegistered = NO;
-        _isAudioSessionMediaServicesWereResetRegistered = NO;
-        _isAudioSessionSilenceSecondaryAudioHintRegistered = NO;
-        
-        _proximityObserver = nil;
-        _audioSessionInterruptionObserver = nil;
-        _audioSessionRouteChangeObserver = nil;
-        _audioSessionMediaServicesWereLostObserver = nil;
-        _audioSessionMediaServicesWereResetObserver = nil;
-        _audioSessionSilenceSecondaryAudioHintObserver = nil;
-        
-        _incallAudioMode = AVAudioSessionModeVoiceChat;
-        _incallAudioCategory = AVAudioSessionCategoryPlayAndRecord;
-        _origAudioCategory = nil;
-        _origAudioMode = nil;
-        _audioSessionInitialized = NO;
-        _forceSpeakerOn = 0;
-        _recordPermission = nil;
-        _cameraPermission = nil;
-        _media = @"audio";
-        
-        NSLog(@"FlutterInCallManager.init(): initialized");
-    }
-    return self;
-}
+/*
+ - (instancetype)init
+ {
+ if (self = [super init]) {
+ _currentDevice = [UIDevice currentDevice];
+ _audioSession = [AVAudioSession sharedInstance];
+ _ringtone = nil;
+ _ringback = nil;
+ _busytone = nil;
+ 
+ _defaultRingtoneUri = nil;
+ _defaultRingbackUri = nil;
+ _defaultBusytoneUri = nil;
+ _bundleRingtoneUri = nil;
+ _bundleRingbackUri = nil;
+ _bundleBusytoneUri = nil;
+ 
+ _proximityIsNear = NO;
+ 
+ _isProximityRegistered = NO;
+ _isAudioSessionInterruptionRegistered = NO;
+ _isAudioSessionRouteChangeRegistered = NO;
+ _isAudioSessionMediaServicesWereLostRegistered = NO;
+ _isAudioSessionMediaServicesWereResetRegistered = NO;
+ _isAudioSessionSilenceSecondaryAudioHintRegistered = NO;
+ 
+ _proximityObserver = nil;
+ _audioSessionInterruptionObserver = nil;
+ _audioSessionRouteChangeObserver = nil;
+ _audioSessionMediaServicesWereLostObserver = nil;
+ _audioSessionMediaServicesWereResetObserver = nil;
+ _audioSessionSilenceSecondaryAudioHintObserver = nil;
+ 
+ _incallAudioMode = AVAudioSessionModeVoiceChat;
+ _incallAudioCategory = AVAudioSessionCategoryPlayAndRecord;
+ _origAudioCategory = nil;
+ _origAudioMode = nil;
+ _audioSessionInitialized = NO;
+ _forceSpeakerOn = 0;
+ _recordPermission = nil;
+ _cameraPermission = nil;
+ _media = @"audio";
+ 
+ NSLog(@"FlutterInCallManager.init(): initialized");
+ }
+ return self;
+ }
+ */
 
 - (void)dealloc
 {
@@ -810,7 +902,15 @@ ringbackUriType:(NSString *)ringbackUriType
                                           if (state != _proximityIsNear) {
                                               NSLog(@"FlutterInCallManager.UIDeviceProximityStateDidChangeNotification(): isNear: %@", state ? @"YES" : @"NO");
                                               _proximityIsNear = state;
-                                              //                                              [self sendEventWithName:@"Proximity" body:@[@{@"isNear": state ? @YES : @NO}]];
+                                              
+                                              //dispatch proximity event
+                                              FlutterEventSink eventSink = incallEvent.eventSink;
+                                              if(eventSink){
+                                                  eventSink(@{
+                                                              @"event" : @"Proximity",
+                                                              @"isNear" : state ? @"YES" : @"NO",
+                                                              });
+                                              }
                                           }
                                       }];
     
@@ -936,31 +1036,45 @@ ringbackUriType:(NSString *)ringbackUriType
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: NewDeviceAvailable");
                                                                 if ([self checkAudioRoute:@[AVAudioSessionPortHeadsetMic]
                                                                                 routeType:@"input"]) {
-                                                                    //                                                                    [self sendEventWithName:@"WiredHeadset"
-                                                                    //                                                                                       body:@[@{
-                                                                    //                                                                                                  @"isPlugged": @YES,
-                                                                    //                                                                                                  @"hasMic": @YES,
-                                                                    //                                                                                                  @"deviceName": AVAudioSessionPortHeadsetMic,
-                                                                    //                                                                                                  }]];
+                                                                    
+                                                                    //dispatch WiredHeadset event
+                                                                    FlutterEventSink eventSink = incallEvent.eventSink;
+                                                                    if(eventSink){
+                                                                        eventSink(@{
+                                                                                    @"event" : @"WiredHeadset",
+                                                                                    @"isPlugged" : @YES,
+                                                                                    @"hasMic": @YES,
+                                                                                    @"deviceName":AVAudioSessionPortHeadsetMic
+                                                                                    });
+                                                                    }
+                                                                    
                                                                 } else if ([self checkAudioRoute:@[AVAudioSessionPortHeadphones]
                                                                                        routeType:@"output"]) {
-                                                                    //                                                                    [self sendEventWithName:@"WiredHeadset"
-                                                                    //                                                                                       body:@[@{
-                                                                    //                                                                                                  @"isPlugged": @YES,
-                                                                    //                                                                                                  @"hasMic": @NO,
-                                                                    //                                                                                                  @"deviceName": AVAudioSessionPortHeadphones,
-                                                                    //                                                                                                  }]];
+                                                                    //dispatch WiredHeadset event
+                                                                    FlutterEventSink eventSink = incallEvent.eventSink;
+                                                                    if(eventSink){
+                                                                        eventSink(@{
+                                                                                    @"event" : @"WiredHeadset",
+                                                                                    @"isPlugged" : @YES,
+                                                                                    @"hasMic": @NO,
+                                                                                    @"deviceName":AVAudioSessionPortHeadphones
+                                                                                    });
+                                                                    }
                                                                 }
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: OldDeviceUnavailable");
                                                                 if (![self isWiredHeadsetPluggedIn]) {
-                                                                    //                                                                    [self sendEventWithName:@"WiredHeadset"
-                                                                    //                                                                                       body:@[@{
-                                                                    //                                                                                                  @"isPlugged": @NO,
-                                                                    //                                                                                                  @"hasMic": @NO,
-                                                                    //                                                                                                  @"deviceName": @"",
-                                                                    //                                                                                                  }]];
+                                                                    //dispatch WiredHeadset event
+                                                                    FlutterEventSink eventSink = incallEvent.eventSink;
+                                                                    if(eventSink){
+                                                                        eventSink(@{
+                                                                                    @"event" : @"WiredHeadset",
+                                                                                    @"isPlugged" : @NO,
+                                                                                    @"hasMic": @NO,
+                                                                                    @"deviceName":@""
+                                                                                    });
+                                                                    }
                                                                 }
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonCategoryChange:

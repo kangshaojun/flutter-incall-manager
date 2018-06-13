@@ -8,7 +8,7 @@ class IncallManager {
   StreamSubscription<dynamic> _eventSubscription;
 
   IncallManager() {
-    //initEvent();
+    initEvent();
   }
 
   //事件监听处理
