@@ -58,10 +58,10 @@
     FlutterMethodChannel* channel = [FlutterMethodChannel
                                      methodChannelWithName:@"cloudwebrtc.com/incall.manager"
                                      binaryMessenger:[registrar messenger]];
-    //FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] init];
-    
     
     UIViewController *viewController = (UIViewController *)registrar.messenger;
+    
+    //init FlutterIncallManagerPlugin
     FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] initWithChannel:channel
                                                                                      registrar:registrar
                                                                                      messenger:[registrar messenger]
@@ -81,6 +81,7 @@
     
     //    self = [super init];
     
+    //init
     _currentDevice = [UIDevice currentDevice];
     _audioSession = [AVAudioSession sharedInstance];
     _ringtone = nil;
@@ -146,16 +147,6 @@
         BOOL isAuto = [argsMap[@"auto"] boolValue];
         NSString* ringback = argsMap[@"ringback"];
         [self start:media auto:isAuto ringbackUriType:ringback];
-        
-        //event test code
-        //        FlutterEventSink eventSink = incallEvent.eventSink;
-        //        if(eventSink){
-        //            eventSink(@{
-        //                        @"event" : @"demoEvent",
-        //                        @"id" : @"aaaa",
-        //                        @"value": @"hello"
-        //                        });
-        //        }
         result(nil);
     }
     else if([@"stop" isEqualToString:call.method]){
@@ -230,55 +221,6 @@
         result(FlutterMethodNotImplemented);
     }
 }
-
-/*
- - (instancetype)init
- {
- if (self = [super init]) {
- _currentDevice = [UIDevice currentDevice];
- _audioSession = [AVAudioSession sharedInstance];
- _ringtone = nil;
- _ringback = nil;
- _busytone = nil;
- 
- _defaultRingtoneUri = nil;
- _defaultRingbackUri = nil;
- _defaultBusytoneUri = nil;
- _bundleRingtoneUri = nil;
- _bundleRingbackUri = nil;
- _bundleBusytoneUri = nil;
- 
- _proximityIsNear = NO;
- 
- _isProximityRegistered = NO;
- _isAudioSessionInterruptionRegistered = NO;
- _isAudioSessionRouteChangeRegistered = NO;
- _isAudioSessionMediaServicesWereLostRegistered = NO;
- _isAudioSessionMediaServicesWereResetRegistered = NO;
- _isAudioSessionSilenceSecondaryAudioHintRegistered = NO;
- 
- _proximityObserver = nil;
- _audioSessionInterruptionObserver = nil;
- _audioSessionRouteChangeObserver = nil;
- _audioSessionMediaServicesWereLostObserver = nil;
- _audioSessionMediaServicesWereResetObserver = nil;
- _audioSessionSilenceSecondaryAudioHintObserver = nil;
- 
- _incallAudioMode = AVAudioSessionModeVoiceChat;
- _incallAudioCategory = AVAudioSessionCategoryPlayAndRecord;
- _origAudioCategory = nil;
- _origAudioMode = nil;
- _audioSessionInitialized = NO;
- _forceSpeakerOn = 0;
- _recordPermission = nil;
- _cameraPermission = nil;
- _media = @"audio";
- 
- NSLog(@"FlutterInCallManager.init(): initialized");
- }
- return self;
- }
- */
 
 - (void)dealloc
 {
@@ -1065,7 +1007,7 @@ ringbackUriType:(NSString *)ringbackUriType
                                                             case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: OldDeviceUnavailable");
                                                                 if (![self isWiredHeadsetPluggedIn]) {
-                                                                    //dispatch WiredHeadset event
+                                                
                                                                     FlutterEventSink eventSink = incallEvent.eventSink;
                                                                     if(eventSink){
                                                                         eventSink(@{
