@@ -11,14 +11,14 @@ class IncallManager {
     initEvent();
   }
 
-  //事件监听处理
+  //init event process
   initEvent() {
     _eventSubscription = _eventChannelFor()
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
   }
 
-  //启动InCallManager
+  //Start InCallManager
   Future<void> start(setup) async {
     //setup = (setup === undefined) ? {} : setup;
     bool auto = (setup['auto'] == false) ? false : true;
@@ -29,7 +29,7 @@ class IncallManager {
         <String, dynamic>{'media': media, 'auto': auto, 'ringback': ringback});
   }
 
-  //停止InCallManager
+  //Stop InCallManager
   Future<void> stop(setup) async {
     String busytone = setup['busytone'];
     await _channel
@@ -71,7 +71,7 @@ class IncallManager {
   }
 
   /*
-  *获取声音文件路径
+  *get audio path
   */
   Future<void> getAudioUriJS(audioType, fileType) async {
       final Map<String, String> response = await _channel.invokeMethod(
@@ -127,7 +127,7 @@ class IncallManager {
     }
   }
 
-  /*检测录制权限*/
+  /*check record permission*/
   Future<String> checkRecordPermission() async {
     String re = "unknow";
 
@@ -137,7 +137,7 @@ class IncallManager {
     return re;
   }
 
-  /*请求获取录制权限*/
+  /*request record permission*/
   Future<String> requestRecordPermission() async {
     String re = "unknow";
     String response = await _channel.invokeMethod('requestRecordPermission');
@@ -145,7 +145,7 @@ class IncallManager {
     return re;
   }
 
-  /*检测摄像头权限*/
+  /*check camera permission*/
   Future<String> checkCameraPermission() async {
     String re = "unknow";
 
@@ -154,7 +154,7 @@ class IncallManager {
     return re;
   }
 
-  /*请求获取摄像权限*/
+  /*request camera permission*/
   Future<String> requestCameraPermission() async {
     String re = "unknow";
 
@@ -175,16 +175,16 @@ class IncallManager {
       case 'demoEvent':
         String id = map['id'];
         String value = map['value'];
-        print("事件监听数据$id $value");
+        print("demo event data:$id $value");
         break;
-      case 'WiredHeadset': //有线耳机是否插入
+      case 'WiredHeadset': //wire headset is plugged
         bool isPlugged = map['isPlugged'];
         bool hasMic = map['hasMic'];
         String deviceName = map['deviceName'];
         print(
             "WiredHeadset:isPlugged:$isPlugged hasMic:$hasMic deviceName:$deviceName");
         break;
-      case 'NoisyAudio': //有线耳机是否拔掉
+      case 'NoisyAudio': //noisy audio
         String status = map['status'];
         print("NoisyAudio:status:$status");
         break;
