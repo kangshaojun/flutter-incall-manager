@@ -20,46 +20,30 @@ class IncallManager {
 
   //启动InCallManager
   Future<void> start(setup) async {
-
     //setup = (setup === undefined) ? {} : setup;
     bool auto = (setup['auto'] == false) ? false : true;
     String media = (setup['media'] == 'video') ? 'video' : 'audio';
     String ringback = setup['ringback'];
 
-    try {
-      await _channel.invokeMethod('start',<String,dynamic>{'media':media,'auto':auto,'ringback':ringback});
-    } on PlatformException catch (e) {
-      throw 'Unable to start: ${e.message}';
-    }
+    await _channel.invokeMethod('start',
+        <String, dynamic>{'media': media, 'auto': auto, 'ringback': ringback});
   }
 
   //停止InCallManager
   Future<void> stop(setup) async {
-
     String busytone = setup['busytone'];
-    try {
-      await _channel.invokeMethod('stop',<String,dynamic>{'busytone':busytone});
-    } on PlatformException catch (e) {
-      throw 'Unable to stop: ${e.message}';
-    }
+    await _channel
+        .invokeMethod('stop', <String, dynamic>{'busytone': busytone});
   }
 
   Future<void> setKeepScreenOn(bool enable) async {
-    try {
-      await _channel
-          .invokeMethod('setKeepScreenOn', <String, dynamic>{'enable': enable});
-    } on PlatformException catch (e) {
-      throw 'Unable to setKeepScreenOn: ${e.message}';
-    }
+    await _channel
+        .invokeMethod('setKeepScreenOn', <String, dynamic>{'enable': enable});
   }
 
   Future<void> setSpeakerphoneOn(enable) async {
-    try {
-      await _channel.invokeMethod(
-          'setSpeakerphoneOn', <String, dynamic>{'enable': enable});
-    } on PlatformException catch (e) {
-      throw 'Unable to setSpeakerphoneOn: ${e.message}';
-    }
+    await _channel
+        .invokeMethod('setSpeakerphoneOn', <String, dynamic>{'enable': enable});
   }
 
   /*
@@ -69,69 +53,51 @@ class IncallManager {
    * -1: force speaker off
    */
   Future<void> setForceSpeakerphoneOn(flag) async {
-    try {
-      await _channel.invokeMethod(
-          'setForceSpeakerphoneOn', <String, dynamic>{'flag': flag});
-    } on PlatformException catch (e) {
-      throw 'Unable to setForceSpeakerphoneOn: ${e.message}';
-    }
+    await _channel.invokeMethod(
+        'setForceSpeakerphoneOn', <String, dynamic>{'flag': flag});
   }
 
   Future<void> setMicrophoneMute(enable) async {
-    try {
-      await _channel.invokeMethod(
-          'setMicrophoneMute', <String, dynamic>{'enable': enable});
-    } on PlatformException catch (e) {
-      throw 'Unable to setMicrophoneMute: ${e.message}';
-    }
+    await _channel
+        .invokeMethod('setMicrophoneMute', <String, dynamic>{'enable': enable});
   }
 
   Future<void> turnScreenOff() async {
-    try {
-      await _channel.invokeMethod('turnScreenOff');
-    } on PlatformException catch (e) {
-      throw 'Unable to turnScreenOff: ${e.message}';
-    }
+    await _channel.invokeMethod('turnScreenOff');
   }
 
   Future<void> turnScreenOn() async {
-    try {
-      await _channel.invokeMethod('turnScreenOn');
-    } on PlatformException catch (e) {
-      throw 'Unable to turnScreenOn: ${e.message}';
-    }
+    await _channel.invokeMethod('turnScreenOn');
   }
 
   /*
   *获取声音文件路径
   */
-  Future<void> getAudioUriJS(audioType,fileType) async {
-    try {
-      final Map<String,String> response = await _channel.invokeMethod('getAudioUriJS',<String, dynamic>{'audioType': audioType,'fileType':fileType});
+  Future<void> getAudioUriJS(audioType, fileType) async {
+      final Map<String, String> response = await _channel.invokeMethod(
+          'getAudioUriJS',
+          <String, dynamic>{'audioType': audioType, 'fileType': fileType});
       String uri = response['uri'];
       print('getAudioUriJS:uri:$uri');
-    } on PlatformException catch (e) {
-      throw 'Unable to getAudioUriJS: ${e.message}';
-    }
   }
 
   /*
   ios_category:'ios value playback or default
   seconds:android only
   */
-  Future<void> startRingtone(ringtoneUriType,ios_category,seconds) async {
-
+  Future<void> startRingtone(ringtoneUriType, ios_category, seconds) async {
     try {
-
       if (defaultTargetPlatform == TargetPlatform.iOS) {
-        await _channel.invokeMethod('startRingtone',<String, dynamic>{'ringtoneUriType': ringtoneUriType,'ios_category':ios_category});
+        await _channel.invokeMethod('startRingtone', <String, dynamic>{
+          'ringtoneUriType': ringtoneUriType,
+          'ios_category': ios_category
+        });
       } else {
-
-        await _channel.invokeMethod('startRingtone',<String, dynamic>{'ringtoneUriType': ringtoneUriType,'seconds':seconds});
-
+        await _channel.invokeMethod('startRingtone', <String, dynamic>{
+          'ringtoneUriType': ringtoneUriType,
+          'seconds': seconds
+        });
       }
-
-
     } on PlatformException catch (e) {
       throw 'Unable to startRingtone: ${e.message}';
     }
@@ -164,49 +130,37 @@ class IncallManager {
   /*检测录制权限*/
   Future<String> checkRecordPermission() async {
     String re = "unknow";
-    try {
-      String response = await _channel.invokeMethod('checkRecordPermission');
-      re = response;
-      print("incall_manager.dart:checkRecordPermission:" + response);
-    } on PlatformException catch (e) {
-      throw 'checkRecordPermission: ${e.message}';
-    }
+
+    String response = await _channel.invokeMethod('checkRecordPermission');
+    re = response;
+    print("incall_manager.dart:checkRecordPermission:" + response);
     return re;
   }
 
   /*请求获取录制权限*/
   Future<String> requestRecordPermission() async {
     String re = "unknow";
-    try {
-      String response = await _channel.invokeMethod('requestRecordPermission');
-      re = response;
-    } on PlatformException catch (e) {
-      throw 'requestRecordPermission: ${e.message}';
-    }
+    String response = await _channel.invokeMethod('requestRecordPermission');
+    re = response;
     return re;
   }
 
   /*检测摄像头权限*/
   Future<String> checkCameraPermission() async {
     String re = "unknow";
-    try {
-      String response = await _channel.invokeMethod('checkCameraPermission');
-      re = response;
-    } on PlatformException catch (e) {
-      throw 'checkCameraPermission: ${e.message}';
-    }
+
+    String response = await _channel.invokeMethod('checkCameraPermission');
+    re = response;
     return re;
   }
 
   /*请求获取摄像权限*/
   Future<String> requestCameraPermission() async {
     String re = "unknow";
-    try {
-      String response = await _channel.invokeMethod('requestCameraPermission');
-      re = response;
-    } on PlatformException catch (e) {
-      throw 'requestCameraPermission: ${e.message}';
-    }
+
+    String response = await _channel.invokeMethod('requestCameraPermission');
+    re = response;
+
     return re;
   }
 
@@ -223,14 +177,14 @@ class IncallManager {
         String value = map['value'];
         print("事件监听数据$id $value");
         break;
-      case 'WiredHeadset'://有线耳机是否插入
+      case 'WiredHeadset': //有线耳机是否插入
         bool isPlugged = map['isPlugged'];
         bool hasMic = map['hasMic'];
         String deviceName = map['deviceName'];
         print(
             "WiredHeadset:isPlugged:$isPlugged hasMic:$hasMic deviceName:$deviceName");
         break;
-      case 'NoisyAudio'://有线耳机是否拔掉
+      case 'NoisyAudio': //有线耳机是否拔掉
         String status = map['status'];
         print("NoisyAudio:status:$status");
         break;

@@ -49,7 +49,7 @@ import com.cloudwebrtc.flutterincallmanager.utils.ConstraintsMap;
 
 
 /**
- * IncallPlugin
+ * FlutterIncallManagerPlugin
  */
 public class FlutterIncallManagerPlugin implements MethodCallHandler {
 
@@ -212,7 +212,6 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
 
 
     mPackageName = getContext().getPackageName();
-    //reactContext.addLifecycleEventListener(this);
     mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
     mPowerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
     audioManager = ((AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE));
