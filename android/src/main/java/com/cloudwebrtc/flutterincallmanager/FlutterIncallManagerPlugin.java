@@ -57,7 +57,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
   private static SparseArray<String> mRequestPermissionCodeTargetPermission;
   private String mPackageName = "com.cloudwebrtc.incall";
 
-  // --- 屏幕管理 Screen Manager
+  //Screen Manager
   private PowerManager mPowerManager;
   private WindowManager.LayoutParams lastLayoutParams;
   private WindowManager mWindowManager;
@@ -104,7 +104,6 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
   private static final String SPEAKERPHONE_FALSE = "false";
 
   /**
-   * 声音设备枚举
    * AudioDevice is the names of possible audio devices that we currently
    * support.
    */
