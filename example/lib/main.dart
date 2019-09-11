@@ -1,10 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_incall_manager/incall.dart';
-import 'package:flutter_incall_manager/flutter_incall_manager.dart';
-
 
 void main() => runApp(new MyApp());
 
@@ -18,21 +15,18 @@ class _MyAppState extends State<MyApp> {
 
   IncallManager incall = new IncallManager();
 
-
   @override
   initState() {
     super.initState();
 
     incall.checkRecordPermission();
     incall.requestRecordPermission();
-    incall.start({'media':'audio', 'auto': true, 'ringback': ''});
-
+    incall.checkCameraPermission();
+    incall.requestCameraPermission();
+    incall.start(media: MediaType.VIDEO);
   }
 
-
-
   testPlugin() async {
-
     //incall.startRingtone('DEFAULT',30);
 
     //Incall.setKeepScreenOn(true);
@@ -54,20 +48,16 @@ class _MyAppState extends State<MyApp> {
 //    String re3 = await incall.checkCameraPermission();
 //
 //    print('checkCameraPermission:' +  re3.toString());
-
   }
 
   bool speakerOn = false;
 
   turnScreenOn() async {
-
-   // incall.stopRingtone();
+    // incall.stopRingtone();
 
     //Incall.setKeepScreenOn(true);
 
     //Incall.turnScreenOn();
-
-
 
 //    Incall.setMicrophoneMute(speakerOn);
 //
@@ -76,17 +66,14 @@ class _MyAppState extends State<MyApp> {
     //incall.stopRingback();
     //Incall.turnScreenOff();
 
-
     //startTimeout(5000);
 
     //incall.setSpeakerphoneOn(true);
 
     //incall.getAudioUriJS('busytone','_DEFAULT_');
-
   }
 
   startTimeout([int milliseconds]) {
-
     const TIMEOUT = const Duration(seconds: 3);
     const ms = const Duration(milliseconds: 1);
 
@@ -94,9 +81,8 @@ class _MyAppState extends State<MyApp> {
     return new Timer(duration, handleTimeout);
   }
 
-
-
-  void handleTimeout() {  // callback function
+  void handleTimeout() {
+    // callback function
     //Incall.turnScreenOn();
     print('turnScreenOn:xxxx');
   }
@@ -109,72 +95,71 @@ class _MyAppState extends State<MyApp> {
           title: new Text('Plugin example app'),
         ),
         body: new Center(
-
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               new RaisedButton(
-                  onPressed: (){
-                    incall.turnScreenOn();
-                  },
-                  child: new Text('turnScreenOn'),
+                onPressed: () {
+                  incall.turnScreenOn();
+                },
+                child: new Text('turnScreenOn'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.turnScreenOff();
                 },
                 child: new Text('turnScreenOff'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.setKeepScreenOn(true);
                 },
                 child: new Text('setKeepScreenOn.true'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.setKeepScreenOn(false);
                 },
                 child: new Text('setKeepScreenOn.false'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.setSpeakerphoneOn(true);
                 },
                 child: new Text('setSpeakerphoneOn.true'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.setSpeakerphoneOn(false);
                 },
                 child: new Text('setSpeakerphoneOn.false'),
               ),
               new RaisedButton(
-                onPressed: (){
-                  incall.startRingtone('DEFAULT','default',30);
+                onPressed: () {
+                  incall.startRingtone('DEFAULT', 'default', 30);
                 },
                 child: new Text('startRingtone.30'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.stopRingtone();
                 },
                 child: new Text('stopRingtone'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.startRingback();
                 },
                 child: new Text('startRingback'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   incall.stopRingback();
                 },
                 child: new Text('stopRingback'),
               ),
               new RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   //incall.getAudioUriJS();
                 },
                 child: new Text('getAudioUriJS'),

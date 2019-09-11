@@ -141,7 +141,7 @@
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     
     NSDictionary* argsMap = call.arguments;
-    
+
     if ([@"start" isEqualToString:call.method]) {
         NSString* media = argsMap[@"media"];
         BOOL isAuto = [argsMap[@"auto"] boolValue];
@@ -266,7 +266,7 @@ ringbackUriType:(NSString *)ringbackUriType
                         options:0
                      callerMemo:NSStringFromSelector(_cmd)];
     
-    if (ringbackUriType.length > 0) {
+    if (![ringbackUriType isEqual:[NSNull null]] && ringbackUriType.length > 0) {
         NSLog(@"FlutterInCallManager.start() play ringback first. type=%@", ringbackUriType);
         [self startRingback:ringbackUriType];
     }
@@ -287,7 +287,7 @@ ringbackUriType:(NSString *)ringbackUriType
     
     [self stopRingback];
     
-    if (busytoneUriType.length > 0 && [self startBusytone:busytoneUriType]) {
+    if (![busytoneUriType isEqual:[NSNull null]] && busytoneUriType.length > 0 && [self startBusytone:busytoneUriType]) {
         // play busytone first, and call this func again when finish
         NSLog(@"FlutterInCallManager.stop(): play busytone before stop");
         return;

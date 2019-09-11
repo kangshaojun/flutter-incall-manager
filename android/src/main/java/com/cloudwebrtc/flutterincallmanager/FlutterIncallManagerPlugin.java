@@ -242,7 +242,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
       result.success("Android " + Build.VERSION.RELEASE);
     } else if (call.method.equals("start")) {
       String media = call.argument("media");
-      Boolean auto = call.argument("auto");
+      boolean auto = call.argument("auto");
       String ringback = call.argument("ringback");
       start(media, auto, ringback);
       result.success(null);
@@ -610,7 +610,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
       audioDevices.clear();
       updateAudioRoute();
 
-      if (!ringbackUriType.isEmpty()) {
+      if (ringbackUriType != null && !ringbackUriType.isEmpty()) {
         startRingback(ringbackUriType);
       }
     }
@@ -624,7 +624,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
   public void stop(final String busytoneUriType) {
     if (audioManagerActivated) {
       stopRingback();
-      if (!busytoneUriType.isEmpty() && startBusytone(busytoneUriType)) {
+      if (busytoneUriType != null && !busytoneUriType.isEmpty() && startBusytone(busytoneUriType)) {
         // play busytone first, and call this func again when finish
         Log.d(TAG, "play busytone before stop InCallManager");
         return;

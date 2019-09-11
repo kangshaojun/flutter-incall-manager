@@ -3,6 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'flutter_incall_manager.dart';
 
+enum MediaType {
+  AUDIO,
+  VIDEO
+}
+
 class IncallManager {
   MethodChannel _channel = Incall.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
@@ -19,19 +24,13 @@ class IncallManager {
   }
 
   //Start InCallManager
-  Future<void> start(setup) async {
-    //setup = (setup === undefined) ? {} : setup;
-    bool auto = (setup['auto'] == false) ? false : true;
-    String media = (setup['media'] == 'video') ? 'video' : 'audio';
-    String ringback = setup['ringback'];
-
+  Future<void> start({bool auto = true, MediaType media = MediaType.AUDIO, String ringback}) async {
     await _channel.invokeMethod('start',
-        <String, dynamic>{'media': media, 'auto': auto, 'ringback': ringback});
+        <String, dynamic>{'media': media == MediaType.AUDIO ? 'audio' : 'video', 'auto': auto, 'ringback': ringback});
   }
 
   //Stop InCallManager
-  Future<void> stop(setup) async {
-    String busytone = setup['busytone'];
+  Future<void> stop({String busytone}) async {
     await _channel
         .invokeMethod('stop', <String, dynamic>{'busytone': busytone});
   }
@@ -78,7 +77,7 @@ class IncallManager {
           'getAudioUriJS',
           <String, dynamic>{'audioType': audioType, 'fileType': fileType});
       String uri = response['uri'];
-      print('getAudioUriJS:uri:$uri');
+      // print('getAudioUriJS:uri:$uri'); TODO: logging?
   }
 
   /*
@@ -133,7 +132,7 @@ class IncallManager {
 
     String response = await _channel.invokeMethod('checkRecordPermission');
     re = response;
-    print("incall_manager.dart:checkRecordPermission:" + response);
+//    print("incall_manager.dart:checkRecordPermission:" + response); TODO: logging
     return re;
   }
 
@@ -175,18 +174,18 @@ class IncallManager {
       case 'demoEvent':
         String id = map['id'];
         String value = map['value'];
-        print("demo event data:$id $value");
+//        print("demo event data:$id $value");
         break;
       case 'WiredHeadset': //wire headset is plugged
         bool isPlugged = map['isPlugged'];
         bool hasMic = map['hasMic'];
         String deviceName = map['deviceName'];
-        print(
-            "WiredHeadset:isPlugged:$isPlugged hasMic:$hasMic deviceName:$deviceName");
+//        print(
+//            "WiredHeadset:isPlugged:$isPlugged hasMic:$hasMic deviceName:$deviceName");
         break;
       case 'NoisyAudio': //noisy audio
         String status = map['status'];
-        print("NoisyAudio:status:$status");
+//        print("NoisyAudio:status:$status");
         break;
       case 'MediaButton':
         String eventText = map['eventText'];
