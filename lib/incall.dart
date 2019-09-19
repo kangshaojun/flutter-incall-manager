@@ -8,6 +8,12 @@ enum MediaType {
   VIDEO
 }
 
+enum ForceSpeakerType {
+  DEFAULT,
+  FORCE_ON,
+  FORCE_OFF
+}
+
 class IncallManager {
   MethodChannel _channel = Incall.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
@@ -40,7 +46,7 @@ class IncallManager {
         .invokeMethod('setKeepScreenOn', <String, dynamic>{'enable': enable});
   }
 
-  Future<void> setSpeakerphoneOn(enable) async {
+  Future<void> setSpeakerphoneOn(bool enable) async {
     await _channel
         .invokeMethod('setSpeakerphoneOn', <String, dynamic>{'enable': enable});
   }
@@ -51,9 +57,9 @@ class IncallManager {
    * 1: force speaker on
    * -1: force speaker off
    */
-  Future<void> setForceSpeakerphoneOn(flag) async {
+  Future<void> setForceSpeakerphoneOn({ForceSpeakerType flag = ForceSpeakerType.DEFAULT}) async {
     await _channel.invokeMethod(
-        'setForceSpeakerphoneOn', <String, dynamic>{'flag': flag});
+        'setForceSpeakerphoneOn', <String, dynamic>{'flag': flag == ForceSpeakerType.DEFAULT ? 0 : (flag == ForceSpeakerType.FORCE_ON ? 1 : -1)});
   }
 
   Future<void> setMicrophoneMute(enable) async {
@@ -73,11 +79,11 @@ class IncallManager {
   *get audio path
   */
   Future<void> getAudioUriJS(audioType, fileType) async {
-      final Map<String, String> response = await _channel.invokeMethod(
-          'getAudioUriJS',
-          <String, dynamic>{'audioType': audioType, 'fileType': fileType});
-      String uri = response['uri'];
-      // print('getAudioUriJS:uri:$uri'); TODO: logging?
+    final Map<String, String> response = await _channel.invokeMethod(
+        'getAudioUriJS',
+        <String, dynamic>{'audioType': audioType, 'fileType': fileType});
+    String uri = response['uri'];
+    // print('getAudioUriJS:uri:$uri'); TODO: logging?
   }
 
   /*
