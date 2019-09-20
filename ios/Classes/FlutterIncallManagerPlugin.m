@@ -141,7 +141,7 @@
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     
     NSDictionary* argsMap = call.arguments;
-    
+
     if ([@"start" isEqualToString:call.method]) {
         NSString* media = argsMap[@"media"];
         BOOL isAuto = [argsMap[@"auto"] boolValue];
@@ -266,7 +266,7 @@ ringbackUriType:(NSString *)ringbackUriType
                         options:0
                      callerMemo:NSStringFromSelector(_cmd)];
     
-    if (ringbackUriType.length > 0) {
+    if (![ringbackUriType isEqual:[NSNull null]] && ringbackUriType.length > 0) {
         NSLog(@"FlutterInCallManager.start() play ringback first. type=%@", ringbackUriType);
         [self startRingback:ringbackUriType];
     }
@@ -287,7 +287,7 @@ ringbackUriType:(NSString *)ringbackUriType
     
     [self stopRingback];
     
-    if (busytoneUriType.length > 0 && [self startBusytone:busytoneUriType]) {
+    if (![busytoneUriType isEqual:[NSNull null]] && busytoneUriType.length > 0 && [self startBusytone:busytoneUriType]) {
         // play busytone first, and call this func again when finish
         NSLog(@"FlutterInCallManager.stop(): play busytone before stop");
         return;
@@ -348,7 +348,47 @@ ringbackUriType:(NSString *)ringbackUriType
 
 - (void) setSpeakerphoneOn:(BOOL)enable
 {
-    NSLog(@"FlutterInCallManager.setSpeakerphoneOn(): ios doesn't support setSpeakerphoneOn()");
+    BOOL success;
+    NSError *error = nil;
+    NSArray* routes = [_audioSession availableInputs];
+
+    if(!enable){
+        NSLog(@"Routing audio via Earpiece");
+        @try {
+            success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
+            if (!success)  NSLog(@"Cannot set category due to error: %@", error);
+            success = [_audioSession setMode:AVAudioSessionModeVoiceChat error:&error];
+            if (!success)  NSLog(@"Cannot set mode due to error: %@", error);
+            [_audioSession setPreferredOutputNumberOfChannels:0 error:nil];
+            if (!success)  NSLog(@"Port override failed due to: %@", error);
+            [_audioSession overrideOutputAudioPort:AVAudioSessionPortBuiltInReceiver error:&error];
+            success = [_audioSession setActive:YES error:&error];
+            if (!success) NSLog(@"Audio session override failed: %@", error);
+            else NSLog(@"AudioSession override is successful ");
+
+        } @catch (NSException *e) {
+            NSLog(@"Error occurred while routing audio via Earpiece", e.reason);
+        }
+    } else {
+        NSLog(@"Routing audio via Loudspeaker");
+        @try {
+            NSLog(@"Available routes", routes[0]);
+            success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
+                        withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
+                        error:nil];
+            if (!success)  NSLog(@"Cannot set category due to error: %@", error);
+            success = [_audioSession setMode:AVAudioSessionModeVoiceChat error: &error];
+            if (!success)  NSLog(@"Cannot set mode due to error: %@", error);
+            [_audioSession setPreferredOutputNumberOfChannels:0 error:nil];
+            [_audioSession overrideOutputAudioPort:AVAudioSessionPortBuiltInSpeaker error: &error];
+            if (!success)  NSLog(@"Port override failed due to: %@", error);
+            success = [_audioSession setActive:YES error:&error];
+            if (!success) NSLog(@"Audio session override failed: %@", error);
+            else NSLog(@"AudioSession override is successful ");
+        } @catch (NSException *e) {
+            NSLog(@"Error occurred while routing audio via Loudspeaker", e.reason);
+        }
+    }
 }
 
 - (void) setForceSpeakerphoneOn:(int)flag
@@ -608,9 +648,9 @@ ringbackUriType:(NSString *)ringbackUriType
 - (void) getIsWiredHeadsetPluggedIn
 {
     BOOL wiredHeadsetPluggedIn = [self isWiredHeadsetPluggedIn];
-    //    resolve(@[@{
-    //                  @"isWiredHeadsetPluggedIn": wiredHeadsetPluggedIn ? @YES : @NO,
-    //                  }]);
+    resolve(@{
+        @"isWiredHeadsetPluggedIn": wiredHeadsetPluggedIn ? @YES : @NO,
+    });
 }
 
 - (void)updateAudioRoute
@@ -829,7 +869,7 @@ ringbackUriType:(NSString *)ringbackUriType
     }
     
     NSLog(@"FlutterInCallManager.startProximitySensor()");
-    _currentDevice.proximityMonitoringEnabled = YES;
+    _currentDevice.proximityMonitoringEnabled = NO;
     
     // --- in case it didn't deallocate when ViewDidUnload
     [self stopObserve:_proximityObserver
@@ -1382,6 +1422,11 @@ ringbackUriType:(NSString *)ringbackUriType
 {
     NSString *filename = player.url.URLByDeletingPathExtension.lastPathComponent;
     NSLog(@"FlutterInCallManager.audioPlayerDecodeErrorDidOccur(): player=%@, error=%@", filename, error.localizedDescription);
+}
+
+(BOOL)requiresMainQueueSetup
+{
+    return NO;
 }
 
 @end
