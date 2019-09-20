@@ -4,4 +4,3 @@
 
 @interface FlutterIncallManagerPlugin : NSObject <FlutterPlugin, AVAudioPlayerDelegate>
 @end
-
