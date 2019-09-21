@@ -244,7 +244,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
             result.success("Android " + Build.VERSION.RELEASE);
         } else if (call.method.equals("start")) {
             String media = call.argument("media");
-            Boolean auto = call.argument("auto");
+      boolean auto = call.argument("auto");
             String ringback = call.argument("ringback");
             start(media, auto, ringback);
             result.success(null);
@@ -337,6 +337,12 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     if (ACTION_HEADSET_PLUG.equals(intent.getAction())) {
+            boolean wiredHeadsetEnabled = true;
+            // when we have state, and this is 0, means no real headset, so, we cant offer a headset
+            if (intent.hasExtra("state") && intent.getIntExtra("state", 0) == 0){
+              wiredHeadsetEnabled = false;
+            }
+            if (wiredHeadsetEnabled) {
                         hasWiredHeadset = true;
                         updateAudioRoute();
                         String deviceName = intent.getStringExtra("name");
@@ -346,12 +352,12 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
                         if (eventSink != null) {
                             ConstraintsMap params = new ConstraintsMap();
                             params.putString("event", "WiredHeadset");
-                            params.putBoolean("isPlugged", (intent.getIntExtra("state", 0) == 1) ? true : false);
-                            params.putBoolean("hasMic", (intent.getIntExtra("microphone", 0) == 1) ? true : false);
+                params.putBoolean("isPlugged", intent.getIntExtra("state", 0) == 1);
+                params.putBoolean("hasMic", intent.getIntExtra("microphone", 0) == 1);
                             params.putString("deviceName", deviceName);
                             eventSink.success(params.toMap());
                         }
-
+            }
                     } else {
                         hasWiredHeadset = false;
                     }
@@ -609,7 +615,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
             audioDevices.clear();
             updateAudioRoute();
 
-            if (!ringbackUriType.isEmpty()) {
+      if (ringbackUriType != null && !ringbackUriType.isEmpty()) {
                 startRingback(ringbackUriType);
             }
         }
@@ -623,7 +629,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
     public void stop(final String busytoneUriType) {
         if (audioManagerActivated) {
             stopRingback();
-            if (!busytoneUriType.isEmpty() && startBusytone(busytoneUriType)) {
+      if (busytoneUriType != null && !busytoneUriType.isEmpty() && startBusytone(busytoneUriType)) {
                 // play busytone first, and call this func again when finish
                 Log.d(TAG, "play busytone before stop InCallManager");
                 return;
@@ -1583,7 +1589,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
             //promise.reject(new Exception("_requestPermission(): currentActivity is not attached"));
             return;
         }
-        int requestPermissionCode = getRandomInteger(1, 99999999);
+    int requestPermissionCode = getRandomInteger(1, 65535);
         mRequestPermissionCodeTargetPermission.put(requestPermissionCode, targetPermission);
         ActivityCompat.requestPermissions(currentActivity, new String[]{targetPermission}, requestPermissionCode);
     }
