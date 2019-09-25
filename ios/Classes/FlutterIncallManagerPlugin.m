@@ -1,5 +1,5 @@
 #import "FlutterIncallManagerPlugin.h"
-#import "FlutterIncallEvent.h";
+#import "FlutterIncallEvent.h"
 
 @implementation FlutterIncallManagerPlugin{
     
@@ -372,7 +372,7 @@ ringbackUriType:(NSString *)ringbackUriType
     } else {
         NSLog(@"Routing audio via Loudspeaker");
         @try {
-            NSLog(@"Available routes", routes[0]);
+            NSLog(@"Available routes: %@", routes[0]);
             success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
                         withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
                         error:nil];
@@ -386,7 +386,7 @@ ringbackUriType:(NSString *)ringbackUriType
             if (!success) NSLog(@"Audio session override failed: %@", error);
             else NSLog(@"AudioSession override is successful ");
         } @catch (NSException *e) {
-            NSLog(@"Error occurred while routing audio via Loudspeaker", e.reason);
+            NSLog(@"Error occurred while routing audio via Loudspeaker: %@", e.reason);
         }
     }
 }
@@ -512,10 +512,10 @@ ringbackUriType:(NSString *)ringbackUriType
 
 - (void) stopRingtone
 {
-    if (_ringtone != nil) {
+    if (self->_ringtone != nil) {
         NSLog(@"FlutterInCallManager.stopRingtone()");
-        [_ringtone stop];
-        _ringtone = nil;
+        [self->_ringtone stop];
+        self->_ringtone = nil;
         [self restoreOriginalAudioSetup];
         [self audioSessionSetActive:NO
                             options:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
@@ -561,13 +561,13 @@ ringbackUriType:(NSString *)ringbackUriType
     NSLog(@"FlutterInCallManager.requestRecordPermission(): waiting for user confirmation...");
     [_audioSession requestRecordPermission:^(BOOL granted) {
         if (granted) {
-            _recordPermission = @"granted";
+            self->_recordPermission = @"granted";
         } else {
-            _recordPermission = @"denied";
+            self->_recordPermission = @"denied";
         }
-        NSLog(@"FlutterInCallManager.requestRecordPermission(): %@", _recordPermission);
+        NSLog(@"FlutterInCallManager.requestRecordPermission(): %@", self->_recordPermission);
         //resolve(_recordPermission);
-        flutterResult(_recordPermission);
+        flutterResult(self->_recordPermission);
     }];
 }
 
@@ -611,11 +611,11 @@ ringbackUriType:(NSString *)ringbackUriType
     [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo
                              completionHandler:^(BOOL granted) {
                                  if (granted) {
-                                     _cameraPermission = @"granted";
+                                     self->_cameraPermission = @"granted";
                                  } else {
-                                     _cameraPermission = @"denied";
+                                     self->_cameraPermission = @"denied";
                                  }
-                                 NSLog(@"FlutterInCallManager.requestCameraPermission(): %@", _cameraPermission);
+                                 NSLog(@"FlutterInCallManager.requestCameraPermission(): %@", self->_cameraPermission);
                                  //resolve(_cameraPermission);
                              }];
     flutterResult(_cameraPermission);
@@ -645,10 +645,10 @@ ringbackUriType:(NSString *)ringbackUriType
     //reject(@"error_code", @"getAudioUriJS() failed", RCTErrorWithMessage(@"getAudioUriJS() failed"));
 }
 
-- (void) getIsWiredHeadsetPluggedIn
+- (void) getIsWiredHeadsetPluggedIn:(FlutterResult)flutterResult
 {
     BOOL wiredHeadsetPluggedIn = [self isWiredHeadsetPluggedIn];
-    resolve(@{
+    flutterResult(@{
         @"isWiredHeadsetPluggedIn": wiredHeadsetPluggedIn ? @YES : @NO,
     });
 }
@@ -880,13 +880,13 @@ ringbackUriType:(NSString *)ringbackUriType
                                      object:_currentDevice
                                       queue: nil
                                       block:^(NSNotification *notification) {
-                                          BOOL state = _currentDevice.proximityState;
-                                          if (state != _proximityIsNear) {
+                                          BOOL state = self->_currentDevice.proximityState;
+                                          if (state != self->_proximityIsNear) {
                                               NSLog(@"FlutterInCallManager.UIDeviceProximityStateDidChangeNotification(): isNear: %@", state ? @"YES" : @"NO");
-                                              _proximityIsNear = state;
+                                              self->_proximityIsNear = state;
                                               
                                               //dispatch proximity event
-                                              FlutterEventSink eventSink = incallEvent.eventSink;
+                                              FlutterEventSink eventSink = self->incallEvent.eventSink;
                                               if(eventSink){
                                                   eventSink(@{
                                                               @"event" : @"Proximity",
@@ -1048,7 +1048,7 @@ ringbackUriType:(NSString *)ringbackUriType
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: OldDeviceUnavailable");
                                                                 if (![self isWiredHeadsetPluggedIn]) {
                                                 
-                                                                    FlutterEventSink eventSink = incallEvent.eventSink;
+                                                                    FlutterEventSink eventSink = self->incallEvent.eventSink;
                                                                     if(eventSink){
                                                                         eventSink(@{
                                                                                     @"event" : @"WiredHeadset",
@@ -1060,7 +1060,7 @@ ringbackUriType:(NSString *)ringbackUriType
                                                                 }
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonCategoryChange:
-                                                                NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: CategoryChange. category=%@ mode=%@", _audioSession.category, _audioSession.mode);
+                                                                NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: CategoryChange. category=%@ mode=%@", self->_audioSession.category, _audioSession.mode);
                                                                 [self updateAudioRoute];
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonOverride:
@@ -1073,7 +1073,7 @@ ringbackUriType:(NSString *)ringbackUriType
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: NoSuitableRouteForCategory");
                                                                 break;
                                                             case AVAudioSessionRouteChangeReasonRouteConfigurationChange:
-                                                                NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: RouteConfigurationChange. category=%@ mode=%@", _audioSession.category, _audioSession.mode);
+                                                                NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: RouteConfigurationChange. category=%@ mode=%@", self->_audioSession.category, _audioSession.mode);
                                                                 break;
                                                             default:
                                                                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: Unknow Value");
@@ -1424,10 +1424,9 @@ ringbackUriType:(NSString *)ringbackUriType
     NSLog(@"FlutterInCallManager.audioPlayerDecodeErrorDidOccur(): player=%@, error=%@", filename, error.localizedDescription);
 }
 
-(BOOL)requiresMainQueueSetup
+- (BOOL)requiresMainQueueSetup
 {
     return NO;
 }
 
 @end
-
