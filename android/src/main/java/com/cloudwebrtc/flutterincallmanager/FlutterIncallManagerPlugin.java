@@ -150,7 +150,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
     // Handles all tasks related to Bluetooth headset devices.
     private final AppRTCBluetoothManager bluetoothManager;
 
-    //靠近传感管理
+    //ProximityManager
     private final InCallProximityManager proximityManager;
 
     private final InCallWakeLockUtils wakeLockUtils;
@@ -164,9 +164,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
 
     interface MyPlayerInterface {
         public boolean isPlaying();
-
         public void startPlay(Map<String, Object> data);
-
         public void stopPlay();
     }
 
@@ -198,20 +196,16 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
         return registrar.context();
     }
 
-
     public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "cloudwebrtc.com/incall.manager");
+        final MethodChannel channel = new MethodChannel(registrar.messenger(), "FlutterInCallManager.Method");
         channel.setMethodCallHandler(new FlutterIncallManagerPlugin(registrar, channel));
     }
 
     private FlutterIncallManagerPlugin(Registrar registrar, MethodChannel channel) {
         this.registrar = registrar;
         this.channel = channel;
-
         mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
         mPowerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
-
-
         mPackageName = getContext().getPackageName();
         mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
         mPowerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
@@ -228,13 +222,9 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
         bluetoothManager = AppRTCBluetoothManager.create(getContext(), this);
         proximityManager = InCallProximityManager.create(getContext(), this);
         wakeLockUtils = new InCallWakeLockUtils(getContext());
-
-        //初始事件
-        EventChannel eventChannel = new EventChannel(registrar.messenger(), "cloudwebrtc.com/incall.manager.event");
+        EventChannel eventChannel = new EventChannel(registrar.messenger(), "FlutterInCallManager.Event");
         eventChannel.setStreamHandler(streamHandler);
-
         Log.d(TAG, "InCallManager initialized");
-
     }
 
 
@@ -244,7 +234,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
             result.success("Android " + Build.VERSION.RELEASE);
         } else if (call.method.equals("start")) {
             String media = call.argument("media");
-      boolean auto = call.argument("auto");
+            boolean auto = call.argument("auto");
             String ringback = call.argument("ringback");
             start(media, auto, ringback);
             result.success(null);
@@ -253,20 +243,20 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
             stop(busytone);
             result.success(null);
         } else if (call.method.equals("setKeepScreenOn")) {
-            Boolean enable = call.argument("enable");
+            Boolean enabled = call.argument("enabled");
             setKeepScreenOn(true);
             result.success(null);
         } else if (call.method.equals("setSpeakerphoneOn")) {
-            Boolean enable = call.argument("enable");
-            setSpeakerphoneOn(enable);
+            Boolean enabled = call.argument("enabled");
+            setSpeakerphoneOn(enabled);
             result.success(null);
         } else if (call.method.equals("setForceSpeakerphoneOn")) {
             int flag = call.argument("flag");
             setForceSpeakerphoneOn(flag);
             result.success(null);
         } else if (call.method.equals("setMicrophoneMute")) {
-            Boolean enable = call.argument("enable");
-            setMicrophoneMute(enable);
+            Boolean enabled = call.argument("enabled");
+            setMicrophoneMute(enabled);
             result.success(null);
         } else if (call.method.equals("turnScreenOn")) {
             turnScreenOn();
@@ -288,10 +278,6 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
         } else if (call.method.equals("stopRingback")) {
             stopRingback();
             result.success(null);
-        } else if (call.method.equals("getAudioUriJS")) {
-            String audioType = call.argument("audioType");
-            String fileType = call.argument("fileType");
-            getAudioUriJS(audioType, fileType, result);
         } else if (call.method.equals("checkRecordPermission")) {
             checkRecordPermission(result);
         } else if (call.method.equals("requestRecordPermission")) {
@@ -300,7 +286,15 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
             checkCameraPermission(result);
         } else if (call.method.equals("requestCameraPermission")) {
             requestCameraPermission(result);
-        } else {
+        } else if (call.method.equals("enableProximitySensor")) {
+            Boolean enabled = call.argument("enabled");
+            if(enabled) {
+                startProximitySensor();
+            } else {
+                stopProximitySensor();
+            }
+            result.success(null);
+        }else {
             result.notImplemented();
         }
     }
@@ -352,8 +346,8 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
                         if (eventSink != null) {
                             ConstraintsMap params = new ConstraintsMap();
                             params.putString("event", "WiredHeadset");
-                params.putBoolean("isPlugged", intent.getIntExtra("state", 0) == 1);
-                params.putBoolean("hasMic", intent.getIntExtra("microphone", 0) == 1);
+                            params.putBoolean("isPlugged", intent.getIntExtra("state", 0) == 1);
+                            params.putBoolean("hasMic", intent.getIntExtra("microphone", 0) == 1);
                             params.putString("deviceName", deviceName);
                             eventSink.success(params.toMap());
                         }
@@ -653,7 +647,7 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
         startWiredHeadsetEvent();
         startNoisyAudioEvent();
         startMediaButtonEvent();
-        startProximitySensor(); // --- proximity event always enable, but only turn screen off when audio is routing to earpiece.
+        startProximitySensor(); // --- proximity event always enabled, but only turn screen off when audio is routing to earpiece.
         setKeepScreenOn(true);
     }
 
@@ -801,11 +795,11 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
     }
 
     /**
-     * 保持屏幕激活
+     * Keep Screen On
      *
-     * @param enable
+     * @param enabled
      */
-    public void setKeepScreenOn(final boolean enable) {
+    public void setKeepScreenOn(final boolean enabled) {
 
         Activity mCurrentActivity = getActivity();
         if (mCurrentActivity == null) {
@@ -813,25 +807,25 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
         }
         mCurrentActivity.runOnUiThread(() -> {
             Window window = mCurrentActivity.getWindow();
-            if (enable) {
+            if (enabled) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             } else {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
-            Log.d(TAG, "setKeepScreenOn(): " + enable);
+            Log.d(TAG, "setKeepScreenOn(): " + enabled);
         });
     }
 
 
     /**
-     * 是否开启扬声器
+     * Speakerphone On/Off
      *
-     * @param enable
+     * @param enabled
      */
-    public void setSpeakerphoneOn(final boolean enable) {
-        if (enable != audioManager.isSpeakerphoneOn()) {
-            Log.d(TAG, "setSpeakerphoneOn(): " + enable);
-            audioManager.setSpeakerphoneOn(enable);
+    public void setSpeakerphoneOn(final boolean enabled) {
+        if (enabled != audioManager.isSpeakerphoneOn()) {
+            Log.d(TAG, "setSpeakerphoneOn(): " + enabled);
+            audioManager.setSpeakerphoneOn(enabled);
         }
     }
 
@@ -866,14 +860,14 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
 
 
     /**
-     * 麦克风静音
+     * Microphone Mute/Unmute
      *
-     * @param enable
+     * @param enabled
      */
-    public void setMicrophoneMute(final boolean enable) {
-        if (enable != audioManager.isMicrophoneMute()) {
-            Log.d(TAG, "setMicrophoneMute(): " + enable);
-            audioManager.setMicrophoneMute(enable);
+    public void setMicrophoneMute(final boolean enabled) {
+        if (enabled != audioManager.isMicrophoneMute()) {
+            Log.d(TAG, "setMicrophoneMute(): " + enabled);
+            audioManager.setMicrophoneMute(enabled);
         }
     }
 
@@ -1144,31 +1138,6 @@ public class FlutterIncallManagerPlugin implements MethodCallHandler {
         });
 
     }
-
-
-    //===== 获取声音文件路径 File Uri Start =====
-    public void getAudioUriJS(String audioType, String fileType, Result flutterResult) {
-        Uri result = null;
-        if (audioType.equals("ringback")) {
-            result = getRingbackUri(fileType);
-        } else if (audioType.equals("busytone")) {
-            result = getBusytoneUri(fileType);
-        } else if (audioType.equals("ringtone")) {
-            result = getRingtoneUri(fileType);
-        }
-        ConstraintsMap params = new ConstraintsMap();
-        try {
-            if (result != null) {
-                params.putString("uri", result.toString());
-            } else {
-                params.putString("uri", "");
-            }
-        } catch (Exception e) {
-            params.putString("uri", "");
-        }
-        flutterResult.success(params.toMap());
-    }
-
     private Uri getRingtoneUri(final String _type) {
         final String fileBundle = "incallmanager_ringtone";
         final String fileBundleExt = "mp3";

@@ -2,5 +2,5 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
-@interface FlutterIncallManagerPlugin : NSObject <FlutterPlugin, AVAudioPlayerDelegate>
+@interface FlutterIncallManagerPlugin : NSObject <FlutterPlugin, AVAudioPlayerDelegate, FlutterStreamHandler>
 @end

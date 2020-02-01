@@ -1,14 +1,12 @@
 #import "FlutterIncallManagerPlugin.h"
-#import "FlutterIncallEvent.h"
 
-@implementation FlutterIncallManagerPlugin{
-    
+@implementation FlutterIncallManagerPlugin {
     FlutterMethodChannel *_methodChannel;
+    FlutterEventSink _eventSink;
+    FlutterEventChannel* _eventChannel;
+
     id _registry;
     id _messenger;
-    id _textures;
-    FlutterIncallEvent *incallEvent;
-    
     UIDevice *_currentDevice;
     
     AVAudioSession *_audioSession;
@@ -53,64 +51,47 @@
     NSString *_media;
 }
 
-//
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     FlutterMethodChannel* channel = [FlutterMethodChannel
-                                     methodChannelWithName:@"cloudwebrtc.com/incall.manager"
+                                     methodChannelWithName:@"FlutterInCallManager.Method"
                                      binaryMessenger:[registrar messenger]];
-    
+
     UIViewController *viewController = (UIViewController *)registrar.messenger;
     
     //init FlutterIncallManagerPlugin
     FlutterIncallManagerPlugin* instance = [[FlutterIncallManagerPlugin alloc] initWithChannel:channel
                                                                                      registrar:registrar
-                                                                                     messenger:[registrar messenger]
-                                                                                viewController:viewController
-                                                                                  withTextures:[registrar textures]];
-    
+                                                                                     messenger:[registrar messenger]];
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
-
-
 - (instancetype)initWithChannel:(FlutterMethodChannel *)channel
                       registrar:(NSObject<FlutterPluginRegistrar>*)registrar
-                      messenger:(NSObject<FlutterBinaryMessenger>*)messenger
-                 viewController:(UIViewController *)viewController
-                   withTextures:(NSObject<FlutterTextureRegistry> *)textures{
-    
-    //    self = [super init];
-    
-    //init
+                      messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
     _currentDevice = [UIDevice currentDevice];
     _audioSession = [AVAudioSession sharedInstance];
     _ringtone = nil;
     _ringback = nil;
     _busytone = nil;
-    
     _defaultRingtoneUri = nil;
     _defaultRingbackUri = nil;
     _defaultBusytoneUri = nil;
     _bundleRingtoneUri = nil;
     _bundleRingbackUri = nil;
     _bundleBusytoneUri = nil;
-    
     _proximityIsNear = NO;
-    
     _isProximityRegistered = NO;
     _isAudioSessionInterruptionRegistered = NO;
     _isAudioSessionRouteChangeRegistered = NO;
     _isAudioSessionMediaServicesWereLostRegistered = NO;
     _isAudioSessionMediaServicesWereResetRegistered = NO;
     _isAudioSessionSilenceSecondaryAudioHintRegistered = NO;
-    
     _proximityObserver = nil;
     _audioSessionInterruptionObserver = nil;
     _audioSessionRouteChangeObserver = nil;
     _audioSessionMediaServicesWereLostObserver = nil;
     _audioSessionMediaServicesWereResetObserver = nil;
     _audioSessionSilenceSecondaryAudioHintObserver = nil;
-    
     _incallAudioMode = AVAudioSessionModeVoiceChat;
     _incallAudioCategory = AVAudioSessionCategoryPlayAndRecord;
     _origAudioCategory = nil;
@@ -128,14 +109,27 @@
         _registry = registrar;
         _messenger = messenger;
     }
-    
-    incallEvent = [[FlutterIncallEvent alloc] init];
-    incallEvent.eventChannel = [FlutterEventChannel
-                                eventChannelWithName:@"cloudwebrtc.com/incall.manager.event"
+
+    _eventChannel = [FlutterEventChannel
+                                eventChannelWithName:@"FlutterInCallManager.Event"
                                 binaryMessenger:_messenger];
-    [incallEvent.eventChannel setStreamHandler:incallEvent];
-    
+    [_eventChannel setStreamHandler:self];
+
     return self;
+}
+
+
+#pragma mark - FlutterStreamHandler methods
+
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
+    _eventSink = sink;
+    return nil;
+}
+
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+    _eventSink = nil;
+    return nil;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -155,13 +149,13 @@
         result(nil);
     }
     else if([@"setKeepScreenOn" isEqualToString:call.method]){
-        BOOL enable = [argsMap[@"enable"] boolValue];
-        [self setKeepScreenOn:enable];
+        BOOL enabled = [argsMap[@"enabled"] boolValue];
+        [self setKeepScreenOn:enabled];
         result(nil);
     }
     else if([@"setSpeakerphoneOn" isEqualToString:call.method]){
-        BOOL enable = [argsMap[@"enable"] boolValue];
-        [self setSpeakerphoneOn:enable];
+        BOOL enabled = [argsMap[@"enabled"] boolValue];
+        [self setSpeakerphoneOn:enabled];
         result(nil);
     }
     else if([@"setForceSpeakerphoneOn" isEqualToString:call.method]){
@@ -170,8 +164,8 @@
         result(nil);
     }
     else if([@"setMicrophoneMute" isEqualToString:call.method]){
-        BOOL enable = [argsMap[@"flag"] boolValue];
-        [self setMicrophoneMute:enable];
+        BOOL enabled = [argsMap[@"flag"] boolValue];
+        [self setMicrophoneMute:enabled];
         result(nil);
     }
     else if([@"turnScreenOn" isEqualToString:call.method]){
@@ -200,11 +194,6 @@
         [self stopRingback];
         result(nil);
     }
-    else if([@"getAudioUriJS" isEqualToString:call.method]){
-        NSString* audioType = argsMap[@"audioType"];
-        NSString* fileType = argsMap[@"fileType"];
-        [self getAudioUriJS:audioType fileType:fileType flutterResult:result];
-    }
     else if([@"checkRecordPermission" isEqualToString:call.method]){
         [self checkRecordPermission:result];
     }
@@ -216,6 +205,15 @@
     }
     else if([@"requestCameraPermission" isEqualToString:call.method]){
         [self requestCameraPermission:result];
+    }
+    else if([@"enableProximitySensor" isEqualToString:call.method]){
+        BOOL enabled = [argsMap[@"enabled"] boolValue];
+        if(enabled) {
+            [self startProximitySensor];
+        } else {
+            [self stopProximitySensor];
+        }
+        result(nil);
     }
     else {
         result(FlutterMethodNotImplemented);
@@ -241,10 +239,27 @@ ringbackUriType:(NSString *)ringbackUriType
     if (_audioSessionInitialized) {
         return;
     }
+    
+    if(_recordPermission == nil) {
+        [self _checkRecordPermission];
+    }
+    
     if (![_recordPermission isEqualToString:@"granted"]) {
-        NSLog(@"FlutterInCallManager.start(): recordPermission should be granted. state: %@", _recordPermission);
+        NSLog(@"FlutterInCallManager.start(): recordPermission should be granted. current state: %@", _recordPermission);
         return;
     }
+    
+    if ([mediaType isEqualToString:@"video"]) {
+        if(_cameraPermission == nil) {
+            [self _checkCameraPermission];
+        }
+        
+        if (![_cameraPermission isEqualToString:@"granted"]) {
+            NSLog(@"FlutterInCallManager.start(): cameraPermission should be granted. current state: %@", _cameraPermission);
+            return;
+        }
+    }
+
     _media = mediaType;
     
     // --- auto is always true on ios
@@ -276,7 +291,6 @@ ringbackUriType:(NSString *)ringbackUriType
     }
     [self setKeepScreenOn:YES];
     _audioSessionInitialized = YES;
-    //self.debugAudioSession()
 }
 
 - (void) stop:(NSString *)busytoneUriType
@@ -317,7 +331,7 @@ ringbackUriType:(NSString *)ringbackUriType
     NSLog(@"FlutterInCallManager.turnScreenOff(): ios doesn't support turnScreenOff()");
 }
 
--setFlashOn:(BOOL)enable
+-setFlashOn:(BOOL)enabled
  brightness:(nonnull NSNumber *)brightness
 {
     if ([AVCaptureDevice class]) {
@@ -326,7 +340,7 @@ ringbackUriType:(NSString *)ringbackUriType
             @try {
                 [device lockForConfiguration:nil];
                 
-                if (enable) {
+                if (enabled) {
                     [device setTorchMode:AVCaptureTorchModeOn];
                 } else {
                     [device setTorchMode:AVCaptureTorchModeOff];
@@ -338,21 +352,21 @@ ringbackUriType:(NSString *)ringbackUriType
     }
 }
 
-- (void) setKeepScreenOn:(BOOL)enable
+- (void) setKeepScreenOn:(BOOL)enabled
 {
-    NSLog(@"FlutterInCallManager.setKeepScreenOn(): enable: %@", enable ? @"YES" : @"NO");
+    NSLog(@"FlutterInCallManager.setKeepScreenOn(): enabled: %@", enabled ? @"YES" : @"NO");
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[UIApplication sharedApplication] setIdleTimerDisabled:enable];
+        [[UIApplication sharedApplication] setIdleTimerDisabled:enabled];
     });
 }
 
-- (void) setSpeakerphoneOn:(BOOL)enable
+- (void) setSpeakerphoneOn:(BOOL)enabled
 {
     BOOL success;
     NSError *error = nil;
     NSArray* routes = [_audioSession availableInputs];
 
-    if(!enable){
+    if(!enabled){
         NSLog(@"Routing audio via Earpiece");
         @try {
             success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
@@ -398,7 +412,7 @@ ringbackUriType:(NSString *)ringbackUriType
     [self updateAudioRoute];
 }
 
-- (void) setMicrophoneMute:(BOOL)enable
+- (void) setMicrophoneMute:(BOOL)enabled
 {
     NSLog(@"FlutterInCallManager.setMicrophoneMute(): ios doesn't support setMicrophoneMute()");
 }
@@ -548,7 +562,6 @@ ringbackUriType:(NSString *)ringbackUriType
 {
     [self _checkRecordPermission];
     if (_recordPermission != nil) {
-        //resolve(_recordPermission);
         flutterResult(_recordPermission);
     } else {
         //reject(@"error_code", @"error message", RCTErrorWithMessage(@"checkRecordPermission is nil"));
@@ -566,7 +579,6 @@ ringbackUriType:(NSString *)ringbackUriType
             self->_recordPermission = @"denied";
         }
         NSLog(@"FlutterInCallManager.requestRecordPermission(): %@", self->_recordPermission);
-        //resolve(_recordPermission);
         flutterResult(self->_recordPermission);
     }];
 }
@@ -620,35 +632,10 @@ ringbackUriType:(NSString *)ringbackUriType
     }];
 }
 
-- (void) getAudioUriJS:(NSString *)audioType
-              fileType:(NSString *)fileType
-         flutterResult:(FlutterResult)flutterResult
-
-{
-    NSURL *result = nil;
-    if ([audioType isEqualToString:@"ringback"]) {
-        result = [self getRingbackUri:fileType];
-    } else if ([audioType isEqualToString:@"busytone"]) {
-        result = [self getBusytoneUri:fileType];
-    } else if ([audioType isEqualToString:@"ringtone"]) {
-        result = [self getRingtoneUri:fileType];
-    }
-    if (result != nil) {
-        if (result.absoluteString.length > 0) {
-            //resolve(result.absoluteString);
-            flutterResult(@{@"uri": result});
-            return;
-        }
-    }
-    flutterResult(@{@"uri": @""});
-    //reject(@"error_code", @"getAudioUriJS() failed", RCTErrorWithMessage(@"getAudioUriJS() failed"));
-}
-
 - (void)updateAudioRoute
 {
     NSLog(@"FlutterInCallManager.updateAudioRoute(): [Enter] forceSpeakerOn flag=%d media=%@ category=%@ mode=%@", _forceSpeakerOn, _media, _audioSession.category, _audioSession.mode);
-    //self.debugAudioSession()
-    
+
     //AVAudioSessionPortOverride overrideAudioPort;
     int overrideAudioPort;
     NSString *overrideAudioPortString = @"";
@@ -705,7 +692,6 @@ ringbackUriType:(NSString *)ringbackUriType
     } else {
         NSLog(@"FlutterInCallManager.updateAudioRoute() did NOT change audio mode");
     }
-    //self.debugAudioSession()
 }
 
 - (BOOL)checkAudioRoute:(NSArray<NSString *> *)targetPortTypeArray
@@ -860,7 +846,7 @@ ringbackUriType:(NSString *)ringbackUriType
     }
     
     NSLog(@"FlutterInCallManager.startProximitySensor()");
-    _currentDevice.proximityMonitoringEnabled = NO;
+    _currentDevice.proximityMonitoringEnabled = YES;
     
     // --- in case it didn't deallocate when ViewDidUnload
     [self stopObserve:_proximityObserver
@@ -875,20 +861,18 @@ ringbackUriType:(NSString *)ringbackUriType
         FlutterIncallManagerPlugin *strongSelf = weakSelf;
         BOOL state = strongSelf->_currentDevice.proximityState;
         if (state != strongSelf->_proximityIsNear) {
-            NSLog(@"FlutterInCallManager.UIDeviceProximityStateDidChangeNotification(): isNear: %@", state ? @"YES" : @"NO");
             strongSelf->_proximityIsNear = state;
-            
             //dispatch proximity event
-            FlutterEventSink eventSink = strongSelf->incallEvent.eventSink;
+            FlutterEventSink eventSink = strongSelf->_eventSink;
             if(eventSink){
                 eventSink(@{
                     @"event" : @"Proximity",
-                    @"isNear" : state ? @"YES" : @"NO",
+                    @"isNear" : @(state),
                 });
             }
         }
     }];
-    
+
     _isProximityRegistered = YES;
 }
 
@@ -905,7 +889,7 @@ ringbackUriType:(NSString *)ringbackUriType
     [self stopObserve:_proximityObserver
                  name:UIDeviceProximityStateDidChangeNotification
                object:nil];
-    
+
     _isProximityRegistered = NO;
 }
 
@@ -1016,7 +1000,7 @@ ringbackUriType:(NSString *)ringbackUriType
                                 routeType:@"input"]) {
                     
                     //dispatch WiredHeadset event
-                    FlutterEventSink eventSink = strongSelf->incallEvent.eventSink;
+                    FlutterEventSink eventSink = strongSelf->_eventSink;
                     if(eventSink){
                         eventSink(@{
                             @"event" : @"WiredHeadset",
@@ -1029,7 +1013,7 @@ ringbackUriType:(NSString *)ringbackUriType
                 } else if ([self checkAudioRoute:@[AVAudioSessionPortHeadphones]
                                        routeType:@"output"]) {
                     //dispatch WiredHeadset event
-                    FlutterEventSink eventSink = strongSelf->incallEvent.eventSink;
+                    FlutterEventSink eventSink = strongSelf->_eventSink;
                     if(eventSink){
                         eventSink(@{
                             @"event" : @"WiredHeadset",
@@ -1044,7 +1028,7 @@ ringbackUriType:(NSString *)ringbackUriType
                 NSLog(@"FlutterInCallManager.AudioRouteChange.Reason: OldDeviceUnavailable");
                 if (![self isWiredHeadsetPluggedIn]) {
                     
-                    FlutterEventSink eventSink = strongSelf->incallEvent.eventSink;
+                    FlutterEventSink eventSink = strongSelf->_eventSink;
                     if(eventSink){
                         eventSink(@{
                             @"event" : @"WiredHeadset",
