@@ -1,10 +1,8 @@
 # flutter-incall-manager
 
-#change react-native-incall-manager to flutter-incall-manager
+## Port from [react-native-incall-manager](https://github.com/zxcpoiu/react-native-incall-manager)
 
-#react-native-incall-manager url https://github.com/zxcpoiu/react-native-incall-manager
-
-#Handling media-routes/sensors/events during a audio/video chat on Flutter
+* Handling media-routes/sensors/events during a audio/video chat on Flutter
 
 
 ## API:
