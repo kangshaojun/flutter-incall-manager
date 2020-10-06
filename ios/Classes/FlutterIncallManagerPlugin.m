@@ -215,6 +215,10 @@
         }
         result(nil);
     }
+    else if([@"isWiredHeadsetPluggedIn" isEqualToString:call.method]){
+        BOOL wiredHeadsetPluggedIn = [self isWiredHeadsetPluggedIn];
+        result(wiredHeadsetPluggedIn ? @YES : @NO);
+    }
     else {
         result(FlutterMethodNotImplemented);
     }
