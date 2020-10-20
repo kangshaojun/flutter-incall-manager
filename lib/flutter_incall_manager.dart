@@ -196,7 +196,9 @@ class IncallManager {
         break;
       case 'onAudioFocusChange':
         String eventText = event['eventText'];
-        bool eventCode = event['eventCode'];
+        bool eventCode = event['eventCode'] is int
+            ? event['eventCode'] > 0
+            : event['eventCode'];
         onAudioFocusChange.add(eventText);
         break;
       case 'onAudioDeviceChanged':
