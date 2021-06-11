@@ -1,4 +1,4 @@
-# flutter_incall
+# flutter_incall_manager
 
 ## Port from [react-native-incall-manager](https://github.com/zxcpoiu/react-native-incall-manager)
 
